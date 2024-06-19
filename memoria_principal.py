@@ -1,37 +1,38 @@
 import math
 from utils import kb_para_bytes
 
+
 class MemoriaPrincipal:
     def __init__(self):
-        self.tamanho = 0
-        self.quantidade_palavras = 0
-        self.unidades_endenrecaveis = 0
-        self.tamanho_endereco_conjunto = 0
-        self.tamanho_tag = 0
+        self.tamanho_endereco = 0
+        self.quantidade_total_palavras = 0
+        self.quantidade_total_blocos = 0
+        self.tamanho_bloco = 0
         self.armazenamento = {}
 
-    def set_numero_de_conjuntos(self, d):  # d
-        self.tamanho_endereco_conjunto = int(d)
+    def set_quantidade_total_palavras(self, tamanho_mp_kb):
+        self.quantidade_total_palavras = int(kb_para_bytes(tamanho_mp_kb) / 4)
         return self
 
-    def set_tamanho(self, tamanho):  # Tamanho do endereço
-        self.tamanho = int(math.log2(kb_para_bytes(tamanho)))
+    # Tamanho do endereço / tamanho da palavra em bytes (4)
+    def set_tamanho_endereco(self):
+        self.tamanho_endereco = int(math.log2(self.quantidade_total_palavras))
         return self
 
-    # Calcula o tamanho de w (número de bits para identificar a palavra dentro do bloco)
-    def set_quantidade_palavras_bloco(self, qtde_palavras):  # valor de w
-        self.quantidade_palavras = int(math.log2(qtde_palavras))
+    def set_quantidade_total_blocos(self, qtde_palavras_bloco):
+        self.quantidade_total_blocos = int(
+            self.quantidade_total_palavras / qtde_palavras_bloco)
         return self
 
-    def set_numero_unidades_enderecaveis_memoria(self):  # valor de s
-        self.unidades_endenrecaveis = int(
-            self.tamanho - self.quantidade_palavras)
-        return self
-
-    def set_tamanho_tag(self):
-        self.tamanho_tag = int(
-            self.unidades_endenrecaveis - self.tamanho_endereco_conjunto)
+    # Quantidade total de palavras * tamanho de cada palavra em bytes
+    def set_tamanho_bloco(self, qtde_palavras_bloco):
+        self.tamanho_bloco = int(qtde_palavras_bloco * 4)
         return self
 
     def __str__(self) -> str:
-        return (f'Tamanho do Endereço da MP: {self.tamanho}\nValor de W: {self.quantidade_palavras}\nValor de S: {self.unidades_endenrecaveis}\nValor de D: {self.tamanho_endereco_conjunto}\nTamanho da TAG: {self.tamanho_tag}')
+        return (
+            f'Quantidade total de palavras / linhas na MP: {self.quantidade_total_palavras}\n'
+            f'Quantidade total de blocos na MP: {self.quantidade_total_blocos}\n'
+            f'Tamanho do bloco da MP: {self.tamanho_bloco} bytes\n'
+            f'Tamanho do Endereço da MP: {self.tamanho_endereco}\n'
+        )
