@@ -1,6 +1,6 @@
 import math
-import random
 from utils import dividir_endereco, kb_para_bytes
+
 
 class MemoriaCache:
     def __init__(self):
@@ -18,6 +18,7 @@ class MemoriaCache:
         self.conjuntos = {}  # Dicionário para armazenar os conjuntos da cache
         self.acertos = 0
         self.falhas = 0
+        self.total_linhas_substituidas = 0
 
     def set_tamanho_bytes(self, tamanho_bytes):
         self.tamanho_bytes = int(kb_para_bytes(tamanho_bytes))
@@ -38,7 +39,11 @@ class MemoriaCache:
     def set_num_conjuntos(self):
         self.num_conjuntos = int(self.total_linhas / self.num_linhas_conjunto)
         for i in range(self.num_conjuntos):
-            self.conjuntos[i] = []
+            # Inicializa cada conjunto com linhas vazias
+            self.conjuntos[i] = {
+                'Linhas': [{'Tag': None, 'Dados': None, 'Frequencia': 0}
+                           for _ in range(self.num_linhas_conjunto)]
+            }
         return self
 
     def set_w(self, quantidade_palavras_bloco):
@@ -65,31 +70,62 @@ class MemoriaCache:
         conjunto_index = int(d_bits, 2)
         tag_str = tag_bits
 
-        # Verifica se houve acerto (hit) ou falha (miss)
-        if any(entry['tag'] == tag_str for entry in self.conjuntos[conjunto_index]):
-            self.acertos += 1
-        else:
-            self.falhas += 1
-            if len(self.conjuntos[conjunto_index]) >= self.num_linhas_conjunto:
-                self.conjuntos[conjunto_index].pop(
-                    0)  # Remove o bloco mais antigo
-            # Simula a busca na memória principal e adiciona o bloco na cache
-            # Escolhe o bloco baseado no endereço de entrada
-            bloco_index = int(endereco[:self.s], 2)
-            bloco = memoria_principal.dados_bloco[bloco_index]
-            self.conjuntos[conjunto_index].append(
-                {'tag': tag_str, 'bloco_index': bloco_index, 'bloco': bloco})
+        # Verifica se houve acerto (hit)
+        for linha in self.conjuntos[conjunto_index]['Linhas']:
+            if linha['Tag'] == tag_str and linha['Dados'] is not None:
+                linha['Frequencia'] += 1
+                self.acertos += 1
+                return conjunto_index
+
+        # Se não houve acerto (miss)
+        self.falhas += 1
+
+        # Simula a busca na memória principal
+        bloco_index = int(endereco[:self.s], 2)
+        bloco = memoria_principal.dados_bloco[bloco_index]
+
+        # Encontra a primeira linha vazia no conjunto e adiciona o bloco
+        for linha in self.conjuntos[conjunto_index]['Linhas']:
+            if linha['Dados'] is None:
+                linha['Tag'] = tag_str
+                linha['Dados'] = bloco
+                linha['Frequencia'] = 1
+                return conjunto_index
+
+        # Se não há linhas vazias, aplica política de substituição (LFU)
+        min_freq = float('inf')
+        linha_substituida = None
+        for linha in self.conjuntos[conjunto_index]['Linhas']:
+            if linha['Frequencia'] < min_freq:
+                min_freq = linha['Frequencia']
+                linha_substituida = linha
+
+        print(
+            f"Linha substituída: Tag={linha_substituida['Tag']}, Dados={linha_substituida['Dados']}")
+
+        # Substitui a linha menos frequentemente utilizada
+        linha_substituida['Tag'] = tag_str
+        linha_substituida['Dados'] = bloco
+        linha_substituida['Frequencia'] = 1
+        self.total_linhas_substituidas += 1
 
         return conjunto_index  # Retorna o índice do conjunto acessado
 
-    def imprimir_conjunto(self, conjunto_index, memoria_principal):
+    def imprimir_conjunto(self, conjunto_index):
+        tag_bits, d_bits, w_bits = dividir_endereco(
+            self.endereco, self.tag, self.d, self.w)
+        print(f"Tag: {tag_bits}, D: {d_bits}, W: {w_bits}")
         print(f"Conjunto {conjunto_index}:")
-        for entry in self.conjuntos[conjunto_index]:
-            d_bits = format(conjunto_index, '0' + str(self.d) + 'b')
-            tag = entry['tag']
-            bloco_index = entry['bloco_index']
-            bloco = entry['bloco']
-            print(f"D: {d_bits}, Tag: {tag}, Bloco Index: {bloco_index}, Dados: {bloco}")
+        for i, entry in enumerate(self.conjuntos[conjunto_index]['Linhas']):
+            dados_str = ' '.join(entry['Dados']) if entry['Dados'] else 'vazia'
+            print(
+                f"Linha {i + 1}: {dados_str}, Frequencia: {entry['Frequencia']}")
+
+    def obter_estado_cache(self):
+        estado_cache = {}
+        for conjunto_index, conjunto_info in self.conjuntos.items():
+            estado_cache[f'Conjunto {conjunto_index}'] = conjunto_info['Linhas']
+        return estado_cache
 
     def __str__(self):
         return (
@@ -104,4 +140,5 @@ class MemoriaCache:
             f'Número de conjuntos da cache: {self.num_conjuntos}\n'
             f'Número de acertos: {self.acertos}\n'
             f'Número de falhas: {self.falhas}\n'
+            f'Total de linhas substituidas devido ao LFU: {self.total_linhas_substituidas}\n'
         )

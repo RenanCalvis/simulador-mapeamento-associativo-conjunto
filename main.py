@@ -1,11 +1,10 @@
 import os
 from memoria_cache import MemoriaCache
 from memoria_principal import MemoriaPrincipal
-from utils import ler_entrada
+from utils import ler_enderecos, ler_entrada
 
 def ler_arquivo(pasta_entradas):
-    nome_arquivo = input(
-        f"Digite o nome do arquivo na pasta '{pasta_entradas}' ou 'q' para sair: ")
+    nome_arquivo = input(f"Digite o nome do arquivo na pasta '{pasta_entradas}' ou 'q' para sair: ")
     if nome_arquivo.lower() == 'q':
         return None
 
@@ -18,8 +17,7 @@ def ler_arquivo(pasta_entradas):
     return caminho_arquivo
 
 def configurar_memorias(caminho_arquivo):
-    tamanho_MP, qtde_palavras_bloco_MP, tamanho_cache, num_linhas_conjunto = ler_entrada(
-        caminho_arquivo)
+    tamanho_MP, qtde_palavras_bloco_MP, tamanho_cache, num_linhas_conjunto = ler_entrada(caminho_arquivo)
 
     mp = MemoriaPrincipal()
     mp.set_quantidade_total_palavras(tamanho_MP)\
@@ -46,14 +44,14 @@ def mostrar_menu():
     print("1. Ler nome de arquivo com informações necessárias")
     print("2. Apresentar informações da memória cache e memória principal")
     print("3. Informar um endereço de MP válido para acesso à MP")
-    print("4. Sair")
+    print("4. Ler lista de endereços de um arquivo")
+    print("5. Sair")
 
 def main():
     pasta_entradas = 'entradas_para_leitura'
 
     if not os.path.exists(pasta_entradas):
-        print(
-            f"A pasta {pasta_entradas} não existe. Por favor, crie a pasta e adicione arquivos de entrada.")
+        print(f"A pasta {pasta_entradas} não existe. Por favor, crie a pasta e adicione arquivos de entrada.")
         return
 
     mp, mc = None, None
@@ -75,31 +73,44 @@ def main():
                 print(str(mp))
                 print(str(mc))
             else:
-                print(
-                    "As memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
+                print("As memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
 
         elif opcao == '3':
             if mp and mc:
                 while True:
-                    endereco = input(
-                        f"Informe um endereço de MP válido, contendo {mp.tamanho_endereco} bits: ")
+                    endereco = input(f"Informe um endereço de MP válido, contendo {mp.tamanho_endereco} bits: ")
 
                     if len(endereco) != mp.tamanho_endereco:
-                        print(
-                            f"Endereço inválido! Deve conter exatamente {mp.tamanho_endereco} bits.")
-                        continue  # Volta ao início do loop para solicitar outro endereço
+                        print(f"Endereço inválido! Deve conter exatamente {mp.tamanho_endereco} bits.")
+                        continue
 
-                    conjunto_index = mc.adicionar_endereco(endereco,mp)
+                    conjunto_index = mc.adicionar_endereco(endereco, mp)
                     print(f"Endereço {endereco} adicionado à memória cache.")
                     print(f"Conjunto acessado: {conjunto_index}")
-                    mc.imprimir_conjunto(conjunto_index, mp)
-
-                    break  # Sai do loop após adicionar o endereço válido
+                    mc.imprimir_conjunto(conjunto_index)
+                    break
             else:
-                print(
-                    "As memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
+                print("As memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
 
         elif opcao == '4':
+            if mp and mc:
+                caminho_arquivo = ler_arquivo(pasta_entradas)
+                if caminho_arquivo:
+                    enderecos = ler_enderecos(caminho_arquivo)
+                    for endereco in enderecos:
+                        if len(endereco) != mp.tamanho_endereco:
+                            print(f"Endereço {endereco} inválido! Deve conter exatamente {mp.tamanho_endereco} bits.")
+                            continue
+                        conjunto_index = mc.adicionar_endereco(endereco, mp)
+                        print(f"\nEndereço {endereco} adicionado à memória cache.")
+                        print(f"Conjunto acessado: {conjunto_index}")
+                        mc.imprimir_conjunto(conjunto_index)
+                else:
+                    print("Nenhum arquivo de endereços foi lido.")
+            else:
+                print("As memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
+
+        elif opcao == '5':
             print("Saindo...")
             break
 

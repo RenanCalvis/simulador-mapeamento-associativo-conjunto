@@ -14,6 +14,14 @@ def ler_entrada(nome_arquivo):
     return size_MP_kb, words_per_block, size_cache_kb, lines_per_set
 
 
+def ler_enderecos(nome_arquivo):
+    enderecos = []
+    with open(nome_arquivo, 'r') as file:
+        for linha in file:
+            enderecos.append(linha.strip())
+    return enderecos
+
+
 def dividir_endereco(endereco: str, tag: int, d: int, w: int):
     tag_bits = endereco[:tag]
     d_bits = endereco[tag:tag + d]
@@ -26,6 +34,3 @@ def dividir_endereco(endereco: str, tag: int, d: int, w: int):
 def gerar_palavra_aleatoria(tamanho):
     return ''.join(random.choice('01') for _ in range(tamanho))
 
-
-# def listar_arquivos_pasta(pasta):
-#     return [f for f in os.listdir(pasta) if os.path.isfile(os.path.join(pasta, f))]

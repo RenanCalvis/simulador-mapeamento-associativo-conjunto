@@ -1,6 +1,6 @@
 import math
-import random
 from utils import gerar_palavra_aleatoria, kb_para_bytes
+
 
 class MemoriaPrincipal:
     def __init__(self):
@@ -9,7 +9,8 @@ class MemoriaPrincipal:
         self.quantidade_total_palavras = 0
         self.quantidade_total_blocos = 0
         self.tamanho_bloco = 0
-        self.dados_bloco = {}  # Dicionário para armazenar os dados dos blocos da memória principal
+        # Dicionário para armazenar os dados dos blocos da memória principal
+        self.dados_bloco = {}
 
     def set_quantidade_total_palavras(self, tamanho_mp_kb):
         self.quantidade_total_palavras = int(kb_para_bytes(tamanho_mp_kb) / 4)
@@ -24,12 +25,16 @@ class MemoriaPrincipal:
         return self
 
     def set_quantidade_total_blocos(self):
-        self.quantidade_total_blocos = int(self.quantidade_total_palavras / self.quantidade_palavras_por_bloco)
+        self.quantidade_total_blocos = int(
+            self.quantidade_total_palavras / self.quantidade_palavras_por_bloco)
         # Inicializa os dados de cada bloco na memória principal
         for i in range(self.quantidade_total_blocos):
             # Cada bloco terá `self.quantidade_palavras_por_bloco` palavras aleatórias de 4 bits cada
-            self.dados_bloco[i] = [gerar_palavra_aleatoria(4) for _ in range(self.quantidade_palavras_por_bloco)]
+            self.dados_bloco[i] = [gerar_palavra_aleatoria(
+                4) for j in range(self.quantidade_palavras_por_bloco)]
+
         return self
+        # Calcula o tamanho do bloco em bytes
 
     def set_tamanho_bloco(self):
         self.tamanho_bloco = int(self.quantidade_palavras_por_bloco * 4)
