@@ -75,6 +75,8 @@ class MemoriaCache:
             if linha['Tag'] == tag_str and linha['Dados'] is not None:
                 linha['Frequencia'] += 1
                 self.acertos += 1
+                self.imprimir_conjunto_anterior_e_posterior(
+                    conjunto_index, conjunto_index)
                 return conjunto_index
 
         # Se não houve acerto (miss)
@@ -85,20 +87,23 @@ class MemoriaCache:
         bloco = memoria_principal.dados_bloco[bloco_index]
 
         # Encontra a primeira linha vazia no conjunto e adiciona o bloco
-        for linha in self.conjuntos[conjunto_index]['Linhas']:
+        for i, linha in enumerate(self.conjuntos[conjunto_index]['Linhas']):
             if linha['Dados'] is None:
                 linha['Tag'] = tag_str
                 linha['Dados'] = bloco
                 linha['Frequencia'] = 1
+                self.imprimir_conjunto_anterior_e_posterior(conjunto_index, i)
                 return conjunto_index
 
         # Se não há linhas vazias, aplica política de substituição (LFU)
         min_freq = float('inf')
         linha_substituida = None
-        for linha in self.conjuntos[conjunto_index]['Linhas']:
+        linha_substituida_index = -1
+        for i, linha in enumerate(self.conjuntos[conjunto_index]['Linhas']):
             if linha['Frequencia'] < min_freq:
                 min_freq = linha['Frequencia']
                 linha_substituida = linha
+                linha_substituida_index = i
 
         print(
             f"Linha substituída: Tag={linha_substituida['Tag']}, Dados={linha_substituida['Dados']}")
@@ -109,17 +114,73 @@ class MemoriaCache:
         linha_substituida['Frequencia'] = 1
         self.total_linhas_substituidas += 1
 
+        self.imprimir_conjunto_anterior_e_posterior(
+            conjunto_index, linha_substituida_index)
         return conjunto_index  # Retorna o índice do conjunto acessado
 
+    def imprimir_conjunto_anterior_e_posterior(self, conjunto_index, linha_index):
+        conjuntos_keys = list(self.conjuntos.keys())
+        index_atual = conjuntos_keys.index(conjunto_index)
+
+        if index_atual == 0:
+            conjunto_anterior = conjuntos_keys[-1]
+            conjunto_posterior = conjuntos_keys[index_atual + 1]
+        elif index_atual == len(conjuntos_keys) - 1:
+            conjunto_anterior = conjuntos_keys[index_atual - 1]
+            conjunto_posterior = conjuntos_keys[0]
+        else:
+            conjunto_anterior = conjuntos_keys[index_atual - 1]
+            conjunto_posterior = conjuntos_keys[index_atual + 1]
+
+        print(f"\nConjunto anterior ao conjunto {conjunto_index}:")
+        self.imprimir_conjunto(conjunto_anterior)
+
+        print(
+            f"\nConjunto atual {conjunto_index} (incluindo linha atual e vizinhas):")
+        self.imprimir_linha_atual_e_vizinhas(conjunto_index, linha_index)
+
+        print(f"\nConjunto posterior ao conjunto {conjunto_index}:")
+        self.imprimir_conjunto(conjunto_posterior)
+
     def imprimir_conjunto(self, conjunto_index):
-        tag_bits, d_bits, w_bits = dividir_endereco(
-            self.endereco, self.tag, self.d, self.w)
-        print(f"Tag: {tag_bits}, D: {d_bits}, W: {w_bits}")
+        conjunto = self.conjuntos[conjunto_index]
         print(f"Conjunto {conjunto_index}:")
-        for i, entry in enumerate(self.conjuntos[conjunto_index]['Linhas']):
-            dados_str = ' '.join(entry['Dados']) if entry['Dados'] else 'vazia'
+        for i, linha in enumerate(conjunto['Linhas']):
+            dados_str = ' '.join(linha['Dados']) if linha['Dados'] else 'vazia'
             print(
-                f"Linha {i + 1}: {dados_str}, Frequencia: {entry['Frequencia']}")
+                f"Linha {i + 1}: {dados_str}, Tag: {linha['Tag']}, Frequencia: {linha['Frequencia']}")
+
+    def imprimir_linha_atual_e_vizinhas(self, conjunto_index, linha_index):
+        conjunto = self.conjuntos[conjunto_index]
+        print(f"Conjunto {conjunto_index}:")
+
+        # Define o intervalo de linhas a serem impressas
+        num_linhas = len(conjunto['Linhas'])
+
+        # Calcula os índices das linhas vizinhas
+        inicio = max(0, linha_index - 2)
+        fim = min(num_linhas, linha_index + 3)
+
+        # Imprime as linhas anteriores à linha atual
+        for i in range(inicio, linha_index):
+            linha = conjunto['Linhas'][i]
+            dados_str = ' '.join(linha['Dados']) if linha['Dados'] else 'vazia'
+            print(
+                f"Linha {i + 1}: {dados_str}, Tag: {linha['Tag']}, Frequencia: {linha['Frequencia']}")
+
+        # Imprime a linha atual
+        linha_atual = conjunto['Linhas'][linha_index]
+        dados_str = ' '.join(
+            linha_atual['Dados']) if linha_atual['Dados'] else 'vazia'
+        print(
+            f"--> Linha {linha_index + 1}: {dados_str}, Tag: {linha_atual['Tag']}, Frequencia: {linha_atual['Frequencia']}")
+
+        # Imprime as linhas posteriores à linha atual
+        for i in range(linha_index + 1, fim):
+            linha = conjunto['Linhas'][i]
+            dados_str = ' '.join(linha['Dados']) if linha['Dados'] else 'vazia'
+            print(
+                f"Linha {i + 1}: {dados_str}, Tag: {linha['Tag']}, Frequencia: {linha['Frequencia']}")
 
     def obter_estado_cache(self):
         estado_cache = {}
@@ -127,12 +188,16 @@ class MemoriaCache:
             estado_cache[f'Conjunto {conjunto_index}'] = conjunto_info['Linhas']
         return estado_cache
 
+    def informacoes_bits_endereco(self):
+        return (f'Informações do endereço:\n'
+                f'Valor de W: {self.w}\n'
+                f'Valor de S: {self.s}\n'
+                f'Valor de D: {self.d}\n'
+                f'Tamanho da TAG: {self.tag}\n')
+
     def __str__(self):
         return (
-            f'Valor de W: {self.w}\n'
-            f'Valor de S: {self.s}\n'
-            f'Valor de D: {self.d}\n'
-            f'Tamanho da TAG: {self.tag}\n'
+            f'Informações da Mémoria Cache:\n'
             f'Tamanho da cache em bytes: {self.tamanho_bytes}\n'
             f'Total de linhas da cache: {self.total_linhas}\n'
             f'Tamanho das linhas da cache: {self.tamanho_linhas} bytes\n'
