@@ -3,22 +3,33 @@ from memoria_cache import MemoriaCache
 from memoria_principal import MemoriaPrincipal
 from utils import ler_enderecos, ler_entrada
 
+# Solicita o nome de um arquivo na pasta especificada e retorna o caminho completo do arquivo
+
+
 def ler_arquivo(pasta_entradas):
-    nome_arquivo = input(f"Digite o nome do arquivo na pasta '{pasta_entradas}' ou 'q' para sair: ")
-    if nome_arquivo.lower() == 'q':
+    nome_arquivo = input(
+        f"Digite o nome do arquivo na pasta '{pasta_entradas}' ou 'q' para sair: ")
+    print("-" * 100)
+    if nome_arquivo.lower() == 'q':  # Verifica se o usuário deseja sair
         return None
 
+    # Constrói o caminho completo do arquivo
     caminho_arquivo = os.path.join(pasta_entradas, nome_arquivo)
 
-    if not os.path.isfile(caminho_arquivo):
-        print("Arquivo não encontrado. Tente novamente.")
+    if not os.path.isfile(caminho_arquivo):  # Verifica se o arquivo existe
+        print("\nArquivo não encontrado. Tente novamente.")
         return None
 
-    return caminho_arquivo
+    return caminho_arquivo  # Retorna o caminho do arquivo se encontrado
+
+    # Lê os parâmetros de configuração das memórias a partir de um arquivo de entrada
+
 
 def configurar_memorias(caminho_arquivo):
-    tamanho_MP, qtde_palavras_bloco_MP, tamanho_cache, num_linhas_conjunto = ler_entrada(caminho_arquivo)
+    tamanho_MP, qtde_palavras_bloco_MP, tamanho_cache, num_linhas_conjunto = ler_entrada(
+        caminho_arquivo)
 
+    # Configura a memória principal (MP)
     mp = MemoriaPrincipal()
     mp.set_quantidade_total_palavras(tamanho_MP)\
       .set_quantidades_palavras_por_bloco(qtde_palavras_bloco_MP)\
@@ -26,6 +37,7 @@ def configurar_memorias(caminho_arquivo):
       .set_tamanho_endereco()\
       .set_tamanho_bloco()
 
+    # Configura a memória cache (MC)
     mc = MemoriaCache()
     mc.set_tamanho_bytes(tamanho_cache)\
       .set_tamanho_linhas(mp.tamanho_bloco)\
@@ -37,85 +49,124 @@ def configurar_memorias(caminho_arquivo):
       .set_d()\
       .set_tamanho_tag()
 
-    return mp, mc
+    return mp, mc  # Retorna as instâncias configuradas de MP e MC
+
+    # Exibe o menu de opções para o usuário
+
 
 def mostrar_menu():
-    print("\nMenu:")
+    print("-" * 100)
+    print("Menu:\n")
     print("1. Ler nome de arquivo com informações necessárias")
-    print("2. Apresentar informações da memória cache e memória principal")
-    print("3. Informar um endereço de MP válido para acesso à MP")
+    print("2. Apresentar informações da Memória Cache, Memória Principal e os valores para os bits endereçáveis")
+    print("3. Informar um endereço em bits válido para realizar o mapeamento")
     print("4. Ler lista de endereços de um arquivo")
-    print("5. Sair")
+    print("5. Visualizar os dados contidos na Memória Principal")
+    print("6. Sair")
+    print("-" * 100)
+
 
 def main():
+    # Define a pasta onde os arquivos de entrada estão localizados
     pasta_entradas = 'entradas_para_leitura'
 
+    # Verifica se a pasta de entradas existe
     if not os.path.exists(pasta_entradas):
-        print(f"A pasta {pasta_entradas} não existe. Por favor, crie a pasta e adicione arquivos de entrada.")
+        print(
+            f"\nA pasta {pasta_entradas} não existe. Por favor, crie a pasta e adicione arquivos de entrada.")
         return
 
-    mp, mc = None, None
+    mp, mc = None, None  # Inicializa as variáveis para as memórias principal e cache
 
     while True:
-        mostrar_menu()
+        mostrar_menu()  # Exibe o menu de opções
         opcao = input("Escolha uma opção: ")
+        print("-" * 100)
 
+        # Opção para ler o nome do arquivo de configuração
         if opcao == '1':
             caminho_arquivo = ler_arquivo(pasta_entradas)
             if caminho_arquivo:
                 mp, mc = configurar_memorias(caminho_arquivo)
-                print("Memórias configuradas com sucesso.")
+                print("\nMemórias configuradas com sucesso.\n")
             else:
-                print("Nenhum arquivo foi lido.")
+                print("\nNenhum arquivo foi lido.\n")
 
+            # Opção para apresentar informações da memória cache e principal
         elif opcao == '2':
             if mp and mc:
-                print(str(mp))
                 print(str(mc))
+                print(str(mp))
+                print(str(mc.informacoes_bits_endereco()))
             else:
-                print("As memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
+                print(
+                    "\nAs memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
 
+            # Opção para informar um endereço válido e realizar o mapeamento
         elif opcao == '3':
             if mp and mc:
                 while True:
-                    endereco = input(f"Informe um endereço de MP válido, contendo {mp.tamanho_endereco} bits: ")
+                    endereco = input(
+                        f"\nInforme um endereço de MP válido, contendo {mp.tamanho_endereco} bits ou 'q' para sair: ")
+                    print("-" * 100)
 
+                    if endereco.lower() == 'q':
+                        print("\nNenhum endereço foi lido.\n")
+                        break
+
+                    # Verifica se o endereço tem o tamanho correto
                     if len(endereco) != mp.tamanho_endereco:
-                        print(f"Endereço inválido! Deve conter exatamente {mp.tamanho_endereco} bits.")
+                        print(
+                            f"\nEndereço inválido! Deve conter exatamente {mp.tamanho_endereco} bits.")
                         continue
 
-                    conjunto_index = mc.adicionar_endereco(endereco, mp)
-                    print(f"Endereço {endereco} adicionado à memória cache.")
-                    print(f"Conjunto acessado: {conjunto_index}")
-                    mc.imprimir_conjunto(conjunto_index)
+                    print(f"\nEndereço {endereco} adicionado à memória cache.")
+                    mc.adicionar_endereco(endereco, mp)
                     break
             else:
-                print("As memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
+                print(
+                    "\nAs memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
 
+            # Opção para ler uma lista de endereços de um arquivo
         elif opcao == '4':
             if mp and mc:
                 caminho_arquivo = ler_arquivo(pasta_entradas)
                 if caminho_arquivo:
                     enderecos = ler_enderecos(caminho_arquivo)
                     for endereco in enderecos:
+                        # Verifica se cada endereço tem o tamanho correto
                         if len(endereco) != mp.tamanho_endereco:
-                            print(f"Endereço {endereco} inválido! Deve conter exatamente {mp.tamanho_endereco} bits.")
+                            print(
+                                f"\nEndereço {endereco} inválido! Deve conter exatamente {mp.tamanho_endereco} bits.")
                             continue
-                        conjunto_index = mc.adicionar_endereco(endereco, mp)
-                        print(f"\nEndereço {endereco} adicionado à memória cache.")
-                        print(f"Conjunto acessado: {conjunto_index}")
-                        mc.imprimir_conjunto(conjunto_index)
-                else:
-                    print("Nenhum arquivo de endereços foi lido.")
-            else:
-                print("As memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
+                        print(
+                            f"\nEndereço {endereco} adicionado à memória cache.")
 
+                        mc.adicionar_endereco(endereco, mp)
+                else:
+                    print("\nNenhum arquivo de endereços foi lido.\n")
+            else:
+                print(
+                    "\nAs memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
+
+            # Opção para visualizar os dados da memória principal
         elif opcao == '5':
-            print("Saindo...")
+            if mp:
+                print("\nDados dos Blocos da Memória Principal:\n")
+                for bloco, dados in mp.dados_bloco.items():
+                    print(f"Bloco {bloco}: {dados}")
+            else:
+                print(
+                    "\nA memória principal não foi configurada. Por favor, leia um arquivo primeiro.")
+
+            # Opção para sair do programa
+        elif opcao == '6':
+            print("\nSaindo...")
             break
 
         else:
-            print("Opção inválida. Tente novamente.")
+            print("\nOpção inválida. Tente novamente.")
+
 
 if __name__ == "__main__":
-    main()
+    main()  # Executa a função principal / digite em seu terminal: python main.py  para inicializar o programa
