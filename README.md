@@ -1,6 +1,6 @@
-# Mapemanto Associativo por Conjunto
+# Mapeamento Associativo por Conjunto
 
-Este é um simulador de Mapemanto Associativo por Conjunto desenvolvido para disciplina de Arquitetura de Computadores.
+Este é um simulador de Mapeamento Associativo por Conjunto desenvolvido para disciplina de Arquitetura de Computadores.
 
 ## Alunos
 
