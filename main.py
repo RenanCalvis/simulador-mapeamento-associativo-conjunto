@@ -8,7 +8,7 @@ from utils import ler_enderecos, ler_entrada
 
 def ler_arquivo(pasta_entradas):
     nome_arquivo = input(
-        f"Digite o nome do arquivo na pasta '{pasta_entradas}' ou 'q' para sair: ")
+        f"Digite o nome do arquivo com sua extensão na pasta '{pasta_entradas}' ou 'q' para sair: ")
     print("-" * 100)
     if nome_arquivo.lower() == 'q':  # Verifica se o usuário deseja sair
         return None
