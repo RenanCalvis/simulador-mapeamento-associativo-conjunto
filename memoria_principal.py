@@ -42,7 +42,7 @@ class MemoriaPrincipal:
 
     def __str__(self) -> str:
         return (
-            f'Informações da Memoria Principal:\n'
+            f'Informações da Memoria Principal:\n\n'
             f'Quantidade total de palavras / linhas na MP: {self.quantidade_total_palavras}\n'
             f'Quantidade de palavras por bloco: {self.quantidade_palavras_por_bloco}\n'
             f'Quantidade total de blocos na MP: {self.quantidade_total_blocos}\n'

@@ -6,7 +6,8 @@ from utils import ler_enderecos, ler_entrada
 
 def ler_arquivo(pasta_entradas):
     nome_arquivo = input(
-        f"\nDigite o nome do arquivo na pasta '{pasta_entradas}' ou 'q' para sair: ")
+        f"Digite o nome do arquivo na pasta '{pasta_entradas}' ou 'q' para sair: ")
+    print("-" * 100)
     if nome_arquivo.lower() == 'q':
         return None
 
@@ -48,10 +49,11 @@ def mostrar_menu():
     print("-" * 100)
     print("Menu:\n")
     print("1. Ler nome de arquivo com informações necessárias")
-    print("2. Apresentar informações da memória cache e memória principal")
-    print("3. Informar um endereço de MP válido para acesso à MP")
+    print("2. Apresentar informações da Memória Cache, Memória Principal e os valores para os bits endereçáveis")
+    print("3. Informar um endereço em bits válido para realizar o mapeamento")
     print("4. Ler lista de endereços de um arquivo")
-    print("5. Sair")
+    print("5. Visualizar os dados contidos na Memória Principal")
+    print("6. Sair")
     print("-" * 100)
 
 
@@ -80,9 +82,9 @@ def main():
 
         elif opcao == '2':
             if mp and mc:
-                print(str(mc.informacoes_bits_endereco()))
-                print(str(mp))
                 print(str(mc))
+                print(str(mp))
+                print(str(mc.informacoes_bits_endereco()))
             else:
                 print(
                     "\nAs memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
@@ -91,7 +93,11 @@ def main():
             if mp and mc:
                 while True:
                     endereco = input(
-                        f"\nInforme um endereço de MP válido, contendo {mp.tamanho_endereco} bits: ")
+                        f"\nInforme um endereço de MP válido, contendo {mp.tamanho_endereco} bits ou 'q' para sair: ")
+                    print("-" * 100)
+                    
+                    if endereco.lower() == 'q':
+                        break
 
                     if len(endereco) != mp.tamanho_endereco:
                         print(
@@ -126,6 +132,15 @@ def main():
                     "\nAs memórias não foram configuradas. Por favor, leia um arquivo primeiro.")
 
         elif opcao == '5':
+            if mp:
+                print("\nDados dos Blocos da Memória Principal:\n")
+                for bloco, dados in mp.dados_bloco.items():
+                    print(f"Bloco {bloco}: {dados}")
+            else:
+                print(
+                    "\nA memória principal não foi configurada. Por favor, leia um arquivo primeiro.")
+                
+        elif opcao == '6':
             print("\nSaindo...")
             break
 

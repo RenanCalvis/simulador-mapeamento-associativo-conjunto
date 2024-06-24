@@ -132,15 +132,16 @@ class MemoriaCache:
             conjunto_anterior = conjuntos_keys[index_atual - 1]
             conjunto_posterior = conjuntos_keys[index_atual + 1]
 
-        print(f"\nConjunto anterior ao conjunto {conjunto_index}:")
+        print(f"\nConjunto anterior ao conjunto {conjunto_index}:\n")
         self.imprimir_conjunto(conjunto_anterior)
 
         print(
-            f"\nConjunto atual {conjunto_index} (incluindo linha atual e vizinhas):")
+            f"\nConjunto atual {conjunto_index} (incluindo linha atual e vizinhas):\n")
         self.imprimir_linha_atual_e_vizinhas(conjunto_index, linha_index)
 
-        print(f"\nConjunto posterior ao conjunto {conjunto_index}:")
+        print(f"\nConjunto posterior ao conjunto {conjunto_index}:\n")
         self.imprimir_conjunto(conjunto_posterior)
+        print("-" * 100)
 
     def imprimir_conjunto(self, conjunto_index):
         conjunto = self.conjuntos[conjunto_index]
@@ -148,7 +149,7 @@ class MemoriaCache:
         for i, linha in enumerate(conjunto['Linhas']):
             dados_str = ' '.join(linha['Dados']) if linha['Dados'] else 'vazia'
             print(
-                f"Linha {i + 1}: {dados_str}, Tag: {linha['Tag']}, Frequencia: {linha['Frequencia']}")
+                f"Linha {i + 1}: {dados_str}, Tag: {linha['Tag'] if linha['Tag'] else 'vazia'}, Frequencia: {linha['Frequencia']}")
 
     def imprimir_linha_atual_e_vizinhas(self, conjunto_index, linha_index):
         conjunto = self.conjuntos[conjunto_index]
@@ -166,21 +167,21 @@ class MemoriaCache:
             linha = conjunto['Linhas'][i]
             dados_str = ' '.join(linha['Dados']) if linha['Dados'] else 'vazia'
             print(
-                f"Linha {i + 1}: {dados_str}, Tag: {linha['Tag']}, Frequencia: {linha['Frequencia']}")
+                f"Linha {i + 1}: {dados_str}, Tag: {linha['Tag'] if linha['Tag'] else 'vazia'}, Frequencia: {linha['Frequencia']}")
 
         # Imprime a linha atual
         linha_atual = conjunto['Linhas'][linha_index]
         dados_str = ' '.join(
             linha_atual['Dados']) if linha_atual['Dados'] else 'vazia'
         print(
-            f"--> Linha {linha_index + 1}: {dados_str}, Tag: {linha_atual['Tag']}, Frequencia: {linha_atual['Frequencia']}")
+            f"--> Linha {linha_index + 1}: {dados_str}, Tag: {linha_atual['Tag'] if linha_atual['Tag'] else 'vazia'}, Frequencia: {linha_atual['Frequencia']}")
 
         # Imprime as linhas posteriores à linha atual
         for i in range(linha_index + 1, fim):
             linha = conjunto['Linhas'][i]
             dados_str = ' '.join(linha['Dados']) if linha['Dados'] else 'vazia'
             print(
-                f"Linha {i + 1}: {dados_str}, Tag: {linha['Tag']}, Frequencia: {linha['Frequencia']}")
+                f"Linha {i + 1}: {dados_str}, Tag: {linha['Tag'] if linha['Tag'] else 'vazia'}, Frequencia: {linha['Frequencia']}")
 
     def obter_estado_cache(self):
         estado_cache = {}
@@ -189,7 +190,7 @@ class MemoriaCache:
         return estado_cache
 
     def informacoes_bits_endereco(self):
-        return (f'Informações do endereço:\n'
+        return (f'\nInformações do endereço:\n\n'
                 f'Valor de W: {self.w}\n'
                 f'Valor de S: {self.s}\n'
                 f'Valor de D: {self.d}\n'
@@ -197,7 +198,7 @@ class MemoriaCache:
 
     def __str__(self):
         return (
-            f'Informações da Mémoria Cache:\n'
+            f'Informações da Mémoria Cache:\n\n'
             f'Tamanho da cache em bytes: {self.tamanho_bytes}\n'
             f'Total de linhas da cache: {self.total_linhas}\n'
             f'Tamanho das linhas da cache: {self.tamanho_linhas} bytes\n'
